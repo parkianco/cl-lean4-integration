@@ -14,27 +14,39 @@
 (defun lisp-name-to-lean4 (name)
   "Convert a Lisp symbol name to a valid Lean4 identifier.
 
-   Converts kebab-case to snake_case and handles special characters.
+   Converts kebab-case to camelCase and handles special characters.
    Examples:
-     'validate-block -> \"validate_block\"
-     'get-utxo-set   -> \"get_utxo_set\"
-     '*global-var*   -> \"global_var\""
+     'validate-block -> \"validateBlock\"
+     'get-utxo-set   -> \"getUtxoSet\"
+     '*global-var*   -> \"globalVar\""
   (let* ((str (etypecase name
                 (symbol (symbol-name name))
                 (string name)))
          (lowercase (string-downcase str)))
-    ;; Remove earmuffs (*foo*) and convert hyphens to underscores
-    (let ((result (substitute #\_ #\-
-                              (if (and (> (length lowercase) 2)
-                                       (char= (char lowercase 0) #\*)
-                                       (char= (char lowercase (1- (length lowercase))) #\*))
-                                  (subseq lowercase 1 (1- (length lowercase)))
-                                  lowercase))))
-      ;; Ensure it doesn't start with a digit
-      (if (and (> (length result) 0)
-               (digit-char-p (char result 0)))
-          (concatenate 'string "n_" result)
-          result))))
+    ;; Remove earmuffs (*foo*)
+    (let ((cleaned (if (and (> (length lowercase) 2)
+                            (char= (char lowercase 0) #\*)
+                            (char= (char lowercase (1- (length lowercase))) #\*))
+                       (subseq lowercase 1 (1- (length lowercase)))
+                       lowercase)))
+      ;; Convert to camelCase
+      (let ((result (make-string-output-stream))
+            (capitalize-next nil))
+        (loop for char across cleaned
+              do (cond
+                   ((char= char #\-)
+                    (setf capitalize-next t))
+                   (capitalize-next
+                    (write-char (char-upcase char) result)
+                    (setf capitalize-next nil))
+                   (t
+                    (write-char char result))))
+        (let ((out (get-output-stream-string result)))
+          ;; Ensure it doesn't start with a digit
+          (if (and (> (length out) 0)
+                   (digit-char-p (char out 0)))
+              (concatenate 'string "n" out)
+              out))))))
 
 (defun lean4-name-to-lisp (name)
   "Convert a Lean4 identifier to a Lisp symbol name.
