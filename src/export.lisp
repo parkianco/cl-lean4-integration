@@ -8,6 +8,14 @@
 (in-package #:cl-lean4-integration)
 
 ;;; ============================================================================
+;;; Helper Data
+;;; ============================================================================
+
+(defparameter *lambda-list-keyword-symbols*
+  '(&optional &rest &key &allow-other-keys &aux &body &environment &whole)
+  "Lambda list keywords to filter out.")
+
+;;; ============================================================================
 ;;; Main Export Interface
 ;;; ============================================================================
 
@@ -432,14 +440,6 @@
     ;; Default - use simp then aesop
     (t
      "simp only [*]~%    <;> aesop")))
-
-;;; ============================================================================
-;;; Helper Functions
-;;; ============================================================================
-
-(defparameter *lambda-list-keyword-symbols*
-  '(&optional &rest &key &allow-other-keys &aux &body &environment &whole)
-  "Lambda list keywords to filter out.")
 
 (defun function-lambda-list (fn-name)
   "Get the lambda list of a function."
