@@ -34,4 +34,6 @@
     :components
     ((:file "test-lean4"))))
   :perform (test-op (o c)
-             (uiop:symbol-call :cl-lean4-integration.test :run-all-tests)))
+             (let ((result (uiop:symbol-call :cl-lean4-integration.test :run-all-tests)))
+               (unless result
+                 (error "Tests failed")))))
